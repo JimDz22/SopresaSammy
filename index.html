@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Para SammyRizitos 🌸</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Sacramento&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --color-env-back: #e7d5c6;
+  --color-env-front: #f3e6dc;
+  --color-flap: #e0c7b8;
+  --color-bg: #fdf6ee;
+  --color-text: #5e4540;
+  --leaf-1: #e0c7b8;
+  --leaf-2: #c0a191;
+  --leaf-3: #a38076;
+}
+
+body, html {
+  margin: 0;
+  height: 100vh;
+  background: var(--color-bg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  font-family: 'Playfair Display', serif;
+}
+
+#falling-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+    overflow: hidden;
+    display: none;
+}
+
+.leaf {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    background: var(--leaf-1);
+    opacity: 0.7;
+    border-radius: 2px 15px 2px 15px;
+    top: -20px;
+}
+
+@keyframes fall-sway {
+    0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.8; }
+    50% { transform: translate(40px, 50vh) rotate(180deg); }
+    100% { transform: translate(-40px, 105vh) rotate(360deg); opacity: 0; }
+}
+
+@keyframes textFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-text {
+    animation: textFadeIn 0.6s ease forwards;
+}
+
+#intro-screen {
+  position: fixed;
+  inset: 0;
+  background: rgba(253, 246, 238, 0.8);
+  backdrop-filter: blur(15px);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 1s ease;
+}
+
+.intro-btn {
+  padding: 15px 30px;
+  font-size: 1.2rem;
+  background: white;
+  border: 1px solid var(--color-flap);
+  color: var(--color-text);
+  cursor: pointer;
+  border-radius: 50px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  margin-top: 20px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.8s ease;
+}
+
+.envelope-wrapper {
+  position: relative;
+  width: 320px;
+  height: 220px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.envelope-wrapper:hover { transform: scale(1.03) translateY(-5px); }
+
+.envelope-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: var(--color-env-back);
+  border-radius: 0 0 10px 10px;
+  z-index: 1;
+}
+
+.flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-left: 160px solid transparent;
+  border-right: 160px solid transparent;
+  border-top: 110px solid var(--color-flap);
+  transform-origin: top;
+  z-index: 10;
+  transition: transform 0.6s ease, z-index 0.2s ease 0.3s;
+}
+
+.envelope-front {
+  position: absolute;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-left: 160px solid var(--color-env-front);
+  border-right: 160px solid var(--color-env-front);
+  border-top: 110px solid transparent;
+  border-bottom: 110px solid var(--color-env-front);
+  border-radius: 0 0 10px 10px;
+  z-index: 5;
+}
+
+.letter {
+  position: absolute;
+  bottom: 10px;
+  left: 20px;
+  width: 280px;
+  height: 180px;
+  background: #fffaf3;
+  padding: 30px 20px;
+  box-sizing: border-box;
+  z-index: 3;
+  transition: transform 0.8s ease, height 0.8s ease;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.letter-border {
+  position: absolute;
+  inset: 10px;
+  border: 1px dashed #e0c7b8;
+  pointer-events: none;
+}
+
+.open .flap { transform: rotateX(180deg); z-index: 1; }
+.open .letter { transform: translateY(-130px); height: 250px; z-index: 4; }
+.open-container { transform: translateY(80px); }
+
+.page-content {
+  font-size: 16px;
+  color: var(--color-text);
+  line-height: 1.6;
+  text-align: center;
+  white-space: pre-line;
+  z-index: 6;
+}
+
+.signature {
+  font-family: 'Sacramento', cursive;
+  font-size: 24px;
+  color: #8b5e5a;
+  margin-top: 15px;
+  text-align: center;
+}
+
+.open-text {
+  margin-top: 30px;
+  color: #6b4f4f;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.controls-container {
+  margin-top: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.5s;
+}
+
+.nav-buttons { display: flex; gap: 50px; }
+.controls-container button { background: none; border: none; font-size: 32px; cursor: pointer; color: #7a5c58; }
+
+.close-btn {
+  font-family: 'Playfair Display', serif;
+  font-size: 13px !important;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border: 1px solid #7a5c58 !important;
+  padding: 5px 15px;
+  border-radius: 20px;
+  color: #7a5c58;
+}
+
+.hidden { visibility: hidden; pointer-events: none; }
+</style>
+</head>
+
+<body>
+
+<div id="falling-container"></div>
+
+<div id="intro-screen">
+  <h2 style="color: #6b4f4f;">Tengo una pequeña sorpresa para ti...</h2>
+  <button class="intro-btn" onclick="startExperience()">✨</button>
+</div>
+
+<audio id="music" loop>
+  <source src="https://raw.githubusercontent.com/fabidz13/Canciones/main/Elvis%20Presley%20-%20Can't%20Help%20Falling%20In%20Love%20(Official%20Audio).mp3" type="audio/mpeg">
+</audio>
+
+<div class="container" id="mainContainer" style="opacity: 0;">
+  
+  <div class="envelope-wrapper" id="envelopeWrapper" onclick="toggleLetter(true)">
+    <div class="flap"></div>
+    <div class="envelope-back"></div>
+    <div class="envelope-front"></div>
+    
+    <div class="letter" id="letter">
+      <div class="letter-border"></div>
+      <div id="text-container">
+        <div class="page-content" id="page-text"></div>
+        <div class="signature" id="signature"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="open-text" id="instruction">Toca para abrir 🌸</div>
+
+  <div class="controls-container" id="controls">
+    <div class="nav-buttons">
+      <button id="prevBtn" onclick="prevPage()">◀</button>
+      <button id="nextBtn" onclick="nextPage()">▶</button>
+    </div>
+    <button class="close-btn" onclick="toggleLetter(false)">Cerrar carta</button>
+  </div>
+
+</div>
+
+<script>
+const pages = [
+  "Hola SammyRizitos… 🌸",
+  "Hice esta cartita con calma,\ncomo se escriben las cosas sinceras.",
+  "Cada hojita guarda un pensamiento bonito,\nde esos que nacen sin hacer ruido.",
+  "No es perfecta,\npero es real…\ncomo lo que siento.",
+  "Me gusta imaginarte leyendo esto\ny sonriendo un poquito.",
+  "Hay personas que,\nsin darse cuenta,\nse vuelven especiales.",
+  "Y tú…\nlo eres.\nGracias por existir 💕"
+];
+
+let currentPage = 0;
+const music = document.getElementById("music");
+
+function createFallingLeaves() {
+    const container = document.getElementById('falling-container');
+    container.style.display = 'block';
+    const colors = ['var(--leaf-1)', 'var(--leaf-2)', 'var(--leaf-3)'];
+    
+    for (let i = 0; i < 30; i++) {
+        const leaf = document.createElement('div');
+        leaf.classList.add('leaf');
+        leaf.style.left = Math.random() * 100 + 'vw';
+        leaf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        const size = Math.random() * 10 + 10 + 'px';
+        leaf.style.width = size;
+        leaf.style.height = size;
+        const duration = Math.random() * 10 + 8;
+        const delay = Math.random() * 5;
+        leaf.style.animation = `fall-sway ${duration}s linear ${delay}s infinite`;
+        container.appendChild(leaf);
+    }
+}
+
+function startExperience() {
+  document.getElementById("intro-screen").style.opacity = "0";
+  createFallingLeaves();
+  setTimeout(() => {
+    document.getElementById("intro-screen").style.display = "none";
+    document.getElementById("mainContainer").style.opacity = "1";
+    music.play().catch(() => {});
+  }, 1000);
+}
+
+function toggleLetter(open) {
+  const wrapper = document.getElementById("envelopeWrapper");
+  const container = document.getElementById("mainContainer");
+  const controls = document.getElementById("controls");
+  const instruction = document.getElementById("instruction");
+
+  if (open) {
+    wrapper.classList.add("open");
+    container.classList.add("open-container");
+    instruction.style.opacity = "0";
+    setTimeout(() => {
+      controls.style.opacity = "1";
+      controls.style.visibility = "visible";
+    }, 600);
+    showPage();
+  } else {
+    wrapper.classList.remove("open");
+    container.classList.remove("open-container");
+    controls.style.opacity = "0";
+    controls.style.visibility = "hidden";
+    setTimeout(() => { instruction.style.opacity = "1"; }, 600);
+  }
+}
+
+function showPage() {
+  const pageText = document.getElementById("page-text");
+  const signature = document.getElementById("signature");
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const textContainer = document.getElementById("text-container");
+
+  textContainer.classList.remove("animate-text");
+  void textContainer.offsetWidth;
+  
+  pageText.innerText = pages[currentPage];
+  signature.innerText = currentPage === pages.length - 1 ? "Con cariño \n— Fabian 💗" : "";
+
+  textContainer.classList.add("animate-text");
+
+  prevBtn.classList.toggle("hidden", currentPage === 0);
+  nextBtn.classList.toggle("hidden", currentPage === pages.length - 1);
+}
+
+function nextPage() {
+  if (currentPage < pages.length - 1) {
+    currentPage++;
+    showPage();
+  }
+}
+
+function prevPage() {
+  if (currentPage > 0) {
+    currentPage--;
+    showPage();
+  }
+}
+</script>
+
+</body>
+</html>
